@@ -1,0 +1,38 @@
+#Get all application pool names for the specified server name
+#Returns the names as an Array
+function GetApplicationPools
+{
+ param([string]$server)
+  
+ #http://theolddogscriptingblog.wordpress.com/2012/07/09/powershell-iis-and-driving-myself-nuts/
+ $lst = Get-WmiObject -Namespace 'root\webadministration' `
+      -Class ApplicationPool `
+      -ComputerName $server `
+      -Authentication 6
+       
+ $arrNames = @();
+ 
+ #optional loop for additional filtering
+ [int] $n = 0
+ foreach($p in $lst)
+ {
+  #if($p.Name.ToLower().Contains("pattern") -eq $true)
+  $arrNames = $arrNames + @($p.Name)
+  Write-Host "[$n]" $arrNames[$n]
+  $n++
+ }
+ $n=0
+ $n=Read-Host -Prompt "Select the APP you want to do a Recycle from" 
+ 
+ $pool = Get-WmiObject -Namespace 'root\webadministration' `
+        -Class ApplicationPool `
+        -ComputerName $server `
+        -Authentication 6 `
+        -Filter ('Name="' + $arrNames[$n] + '"')
+
+ $pool.Recycle();
+
+ Write-Host "Recycle for " $arrNames[$n] "completed" -ForegroundColor Green
+
+ #return $arrNames
+}
